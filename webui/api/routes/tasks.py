@@ -142,7 +142,7 @@ async def cancel_task(
             "description": "The task does not exist."
         },
         status.HTTP_204_NO_CONTENT: {
-            "description": "The user has been successfully deleted."
+            "description": "The task has been successfully deleted."
         },
     },
     summary="Manually delete a task",
