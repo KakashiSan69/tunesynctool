@@ -36,7 +36,9 @@ onMounted(() => {
     <img :src="provider?.ui.favicon" :alt="provider?.ui.display_name" class="absolute w-5 h-5 right-1 bottom-1" v-if="provider" />
     <template v-if="playlist?.assets.cover_image">
       <Icon icon="material-symbols-light:sentiment-sad-rounded" class="w-14 h-14 text-zinc-500 block" v-if="loadingError" />
-      <img :src="playlist?.assets.cover_image" class="w-full h-full object-cover aspect-square" ref="coverImage" v-else />
+      <a :href="playlist.assets.cover_image" target="_blank" v-else>
+        <img :src="playlist?.assets.cover_image" class="w-full h-full object-cover aspect-square" ref="coverImage" />
+      </a>
     </template>
     <Icon icon="material-symbols:library-music-rounded" class="w-18 h-18 text-zinc-500 block" :class="{ 'animate-pulse': isLoading }" v-else />
   </div>
