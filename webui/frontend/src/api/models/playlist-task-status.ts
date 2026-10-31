@@ -24,7 +24,7 @@ import type { PlaylistTaskProgress } from './playlist-task-progress';
 import type { TaskStatus } from './task-status';
 
 /**
- * Status of the playlist transfer.
+ * Status of the playlist task.
  * @export
  * @interface PlaylistTaskStatus
  */
@@ -77,6 +77,12 @@ export interface PlaylistTaskStatus {
      * @memberof PlaylistTaskStatus
      */
     'last_heartbeat'?: number | null;
+    /**
+     * Output of the task if the task supports it. If it is not supported or the task is not yet completed, it will be empty.
+     * @type {}
+     * @memberof PlaylistTaskStatus
+     */
+    'output'?:  | null;
     /**
      * Original request parameters.
      * @type {PlaylistTaskCreate}

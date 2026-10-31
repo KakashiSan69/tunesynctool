@@ -7,7 +7,7 @@ const attrs = useAttrs();
 withDefaults(defineProps<{
   type: ButtonHTMLAttributes['type'];
   disabled?: boolean;
-  tone?: 'primary' | 'negative';
+  tone?: 'primary' | 'negative' | 'secondary';
 }>(), {
   type: 'button',
   disabled: false,
@@ -21,6 +21,7 @@ withDefaults(defineProps<{
     'opacity-45 cursor-not-allowed': disabled,
     'bg-lime-400 hover:bg-lime-500': tone === 'primary',
     'bg-red-500 hover:bg-red-500/80': tone === 'negative',
+    'bg-zinc-600/40': tone === 'secondary',
   }">
     <slot />
   </AppButtonBase>

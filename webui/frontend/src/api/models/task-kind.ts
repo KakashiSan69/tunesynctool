@@ -21,7 +21,7 @@
  */
 
 export const TaskKind = {
-    PlaylistTransfer: 'playlist_transfer'
+    PlaylistSync: 'playlist_sync'
 } as const;
 
 export type TaskKind = typeof TaskKind[keyof typeof TaskKind];

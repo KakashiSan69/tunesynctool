@@ -197,16 +197,16 @@ export const TasksApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Attempts to transfer the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the transfer.
-         * @summary Transfer a playlist to another provider
+         * Attempts to synchronize the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the task.
+         * @summary Synchronize a playlist with another.
          * @param {PlaylistTaskCreate} playlistTaskCreate 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        transferPlaylist: async (playlistTaskCreate: PlaylistTaskCreate, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        syncPlaylist: async (playlistTaskCreate: PlaylistTaskCreate, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'playlistTaskCreate' is not null or undefined
-            assertParamExists('transferPlaylist', 'playlistTaskCreate', playlistTaskCreate)
-            const localVarPath = `/api/tasks/transfer`;
+            assertParamExists('syncPlaylist', 'playlistTaskCreate', playlistTaskCreate)
+            const localVarPath = `/api/tasks/sync`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -299,16 +299,16 @@ export const TasksApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Attempts to transfer the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the transfer.
-         * @summary Transfer a playlist to another provider
+         * Attempts to synchronize the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the task.
+         * @summary Synchronize a playlist with another.
          * @param {PlaylistTaskCreate} playlistTaskCreate 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async transferPlaylist(playlistTaskCreate: PlaylistTaskCreate, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PlaylistTaskStatus>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.transferPlaylist(playlistTaskCreate, options);
+        async syncPlaylist(playlistTaskCreate: PlaylistTaskCreate, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PlaylistTaskStatus>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.syncPlaylist(playlistTaskCreate, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['TasksApi.transferPlaylist']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['TasksApi.syncPlaylist']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -362,14 +362,14 @@ export const TasksApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.matchTrack(provider, trackMatchCreate, options).then((request) => request(axios, basePath));
         },
         /**
-         * Attempts to transfer the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the transfer.
-         * @summary Transfer a playlist to another provider
+         * Attempts to synchronize the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the task.
+         * @summary Synchronize a playlist with another.
          * @param {PlaylistTaskCreate} playlistTaskCreate 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        transferPlaylist(playlistTaskCreate: PlaylistTaskCreate, options?: RawAxiosRequestConfig): AxiosPromise<PlaylistTaskStatus> {
-            return localVarFp.transferPlaylist(playlistTaskCreate, options).then((request) => request(axios, basePath));
+        syncPlaylist(playlistTaskCreate: PlaylistTaskCreate, options?: RawAxiosRequestConfig): AxiosPromise<PlaylistTaskStatus> {
+            return localVarFp.syncPlaylist(playlistTaskCreate, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -421,14 +421,14 @@ export interface TasksApiInterface {
     matchTrack(provider: string, trackMatchCreate: TrackMatchCreate, options?: RawAxiosRequestConfig): AxiosPromise<TrackRead>;
 
     /**
-     * Attempts to transfer the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the transfer.
-     * @summary Transfer a playlist to another provider
+     * Attempts to synchronize the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the task.
+     * @summary Synchronize a playlist with another.
      * @param {PlaylistTaskCreate} playlistTaskCreate 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApiInterface
      */
-    transferPlaylist(playlistTaskCreate: PlaylistTaskCreate, options?: RawAxiosRequestConfig): AxiosPromise<PlaylistTaskStatus>;
+    syncPlaylist(playlistTaskCreate: PlaylistTaskCreate, options?: RawAxiosRequestConfig): AxiosPromise<PlaylistTaskStatus>;
 
 }
 
@@ -488,15 +488,15 @@ export class TasksApi extends BaseAPI implements TasksApiInterface {
     }
 
     /**
-     * Attempts to transfer the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the transfer.
-     * @summary Transfer a playlist to another provider
+     * Attempts to synchronize the specified playlist from the source provider to the target provider. Replication is not guaranteed to be 100% successful.  This starts a long running task. Clients can poll for the progress of the task.
+     * @summary Synchronize a playlist with another.
      * @param {PlaylistTaskCreate} playlistTaskCreate 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApi
      */
-    public transferPlaylist(playlistTaskCreate: PlaylistTaskCreate, options?: RawAxiosRequestConfig) {
-        return TasksApiFp(this.configuration).transferPlaylist(playlistTaskCreate, options).then((request) => request(this.axios, this.basePath));
+    public syncPlaylist(playlistTaskCreate: PlaylistTaskCreate, options?: RawAxiosRequestConfig) {
+        return TasksApiFp(this.configuration).syncPlaylist(playlistTaskCreate, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

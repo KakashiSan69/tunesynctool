@@ -10,6 +10,8 @@ import PlaylistSelector from './PlaylistSelector.vue';
 import { useRouteQuery } from '@vueuse/router';
 import { isAxiosError } from 'axios';
 import AppCheckbox from '../form/AppCheckbox.vue';
+import AppGroupWrapper from '../generic/AppGroupWrapper.vue';
+import { decode_entity_id, encode_entity_id } from '@/utils/id.ts';
 
 const props = defineProps<{
   providers: ProviderRead[];
@@ -28,7 +30,7 @@ const isDryRun = ref(false);
 const playlists = ref<PlaylistRead[]>([]);
 
 const disallowSubmit = computed(() => {
-  return !sourceProviderChoice.value || !targetProviderChoice.value || !selectedPlaylist.value;
+  return !sourceProviderChoice.value || !targetProviderChoice.value || !sourcePlaylist.value;
 });
 
 const sourceProviderName = useRouteQuery<string>('from_provider');
@@ -66,9 +68,43 @@ const filterOnlyPlaylistsFromSourceProvider = async () => {
   transferablePlaylists.value = playlists.value.filter((p) => p.meta.provider_name === provider_name);
 };
 
-const selectedPlaylistId = useRouteQuery<string | undefined>('from_playlist');
-const selectedPlaylist = computed(() => {
-  return transferablePlaylists.value.find((playlist) => playlist.identifiers.provider_id === selectedPlaylistId.value);
+const targetablePlaylists = ref<PlaylistRead[]>([]);
+const filterOnlyPlaylistsFromTargetProvider = async () => {
+  const provider_name = targetProviderChoice.value?.provider_name;
+
+  if (!provider_name) {
+    return;
+  }
+
+  targetablePlaylists.value = playlists.value.filter((p) => p.meta.provider_name === provider_name);
+  targetablePlaylists.value.unshift({
+    title: 'Create new playlist',
+    description: 'Creates a brand new playlist.',
+    is_public: true,
+    author: {
+      primary: "tunesynctool",
+    },
+    meta: {
+      provider_name: provider_name,
+      share_url: undefined
+    },
+    assets: {
+      cover_image: undefined,
+    },
+    identifiers: {
+      provider_id: encode_entity_id(targetProviderChoice.value.provider_name, "client#create_new"),
+    }
+  })
+};
+
+const sourcePlaylistId = useRouteQuery<string | undefined>('from_playlist');
+const sourcePlaylist = computed(() => {
+  return transferablePlaylists.value.find((playlist) => playlist.identifiers.provider_id === sourcePlaylistId.value);
+});
+
+const targetPlaylistId = useRouteQuery<string | undefined>('to_playlist');
+const targetPlaylist = computed(() => {
+  return transferablePlaylists.value.find((playlist) => playlist.identifiers.provider_id === targetPlaylistId.value);
 });
 
 watch(providers, (newProviders) => {
@@ -88,31 +124,47 @@ watch([sourceProviderChoice, playlists], filterOnlyPlaylistsFromSourceProvider, 
 });
 
 watch(sourceProviderChoice, (newValue, oldValue) => {
-  if (newValue !== oldValue && selectedPlaylist.value?.meta.provider_name !== newValue) {
-    selectedPlaylistId.value = undefined;
+  if (newValue !== oldValue && sourcePlaylist.value?.meta.provider_name !== newValue) {
+    sourcePlaylistId.value = undefined;
+  }
+})
+
+watch([targetProviderChoice, playlists], filterOnlyPlaylistsFromTargetProvider, {
+  immediate: true
+});
+
+watch(targetProviderChoice, (newValue, oldValue) => {
+  if (newValue !== oldValue && targetPlaylist.value?.meta.provider_name !== newValue) {
+    targetPlaylistId.value = undefined;
   }
 })
 
 onMounted(fetchLibraryPlaylists);
 
 const onSubmit = async () => {
-  if (!sourceProviderChoice.value || !targetProviderChoice.value || !selectedPlaylist.value) {
+  if (!sourceProviderChoice.value || !targetProviderChoice.value || !sourcePlaylist.value) {
     return;
   }
 
   isLoading.value = true;
 
   try {
-    const response = await tasksApi.transferPlaylist({
+    let _targetPlaylistId = targetPlaylistId.value;
+    if (targetPlaylistId.value && decode_entity_id(targetPlaylistId.value).provider_id === "client#create_new") {
+      _targetPlaylistId = undefined;
+    }
+
+    const response = await tasksApi.syncPlaylist({
       from_provider: sourceProviderChoice.value.provider_name,
       to_provider: targetProviderChoice.value.provider_name,
-      from_playlist: selectedPlaylist.value?.identifiers.provider_id,
-      kind: TaskKind.PlaylistTransfer, // hardcoded for now, but will need to be dynamic later
+      from_playlist: sourcePlaylist.value?.identifiers.provider_id,
+      kind: TaskKind.PlaylistSync,
       is_dry_run: isDryRun.value,
+      to_playlist: _targetPlaylistId,
     });
 
     emit('submitted', response.data);
-    selectedPlaylistId.value = undefined;
+    sourcePlaylistId.value = undefined;
   } finally {
     isLoading.value = false;
   }
@@ -121,26 +173,42 @@ const onSubmit = async () => {
 
 <template>
   <form @submit.prevent="onSubmit">
-    <AppFormSpacer direction="row" class="items-start">
-      <PlaylistSelector :playlists="transferablePlaylists" :disabled="isLoading" v-model="selectedPlaylistId" :is-loading />
-      <div class="flex gap-2">
-        <ProviderSelector :providers v-model="sourceProviderName" />
+    <AppFormSpacer direction="col">
+      <AppFormSpacer direction="row">
+        <AppGroupWrapper class="flex flex-col flex-1 gap-2">
+          <template #label>Source</template>
+          <template #description>Select the playlist to use as reference.</template>
+          <template #content>
+            <div class="flex gap-2 items-center">
+              <ProviderSelector :providers :compact="true" v-model="sourceProviderName" />
+              <PlaylistSelector :playlists="transferablePlaylists" :disabled="isLoading" v-model="sourcePlaylistId" :is-loading />
+            </div>
+          </template>
+        </AppGroupWrapper>
         <Icon icon="material-symbols-light:arrow-right-alt-rounded" class="block text-3xl h-full my-auto text-zinc-400" />
-        <ProviderSelector :providers v-model="targetProviderName" />
+        <AppGroupWrapper class="flex flex-col flex-1 gap-2">
+          <template #label>Target</template>
+          <template #description>Select the playlist to sync to or create a new one.</template>
+          <template #content>
+            <div class="flex gap-2 items-center">
+              <ProviderSelector :providers :compact="true" v-model="targetProviderName" />
+              <PlaylistSelector :playlists="targetablePlaylists" :disabled="isLoading" v-model="targetPlaylistId" :is-loading />
+            </div>
+          </template>
+        </AppGroupWrapper>
+      </AppFormSpacer>
+      <div class="flex">
+        <div class="w-fit">
+            <AppCheckbox id="playlist-task-dry-run" v-model="isDryRun" label="Dry run" description="Runs the task as usual, but doesn't actually modify anything." :disabled="isLoading" />
+        </div>
+        <AppButton type="submit" :disabled="disallowSubmit || isLoading" class="min-w-30 ms-auto">
+          <Icon icon="svg-spinners:3-dots-bounce" class="inline-block text-2xl" v-if="isLoading"/>
+          <template v-else>
+            <template v-if="targetPlaylist">Sync</template>
+            <template v-else>Transfer</template>
+          </template>
+        </AppButton>
       </div>
-      <AppCheckbox
-        id="playlist-task-dry-run"
-        v-model="isDryRun"
-        class="shrink-0"
-        label="Dry run"
-        :disabled="isLoading"
-      />
-      <AppButton type="submit" :disabled="disallowSubmit || isLoading" class="min-w-30">
-        <Icon icon="svg-spinners:3-dots-bounce" class="inline-block text-2xl" v-if="isLoading"/>
-        <template v-else>
-          Transfer
-        </template>
-      </AppButton>
     </AppFormSpacer>
   </form>
 </template>

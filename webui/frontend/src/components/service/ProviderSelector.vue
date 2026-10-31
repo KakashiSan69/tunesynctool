@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import type { ProviderRead } from '@/api';
-import { computed, useAttrs, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { ComboboxAnchor, ComboboxContent, ComboboxItem, ComboboxRoot, ComboboxTrigger, ComboboxViewport } from 'reka-ui';
 import { Icon } from '@iconify/vue';
 
 const props = withDefaults(defineProps<{
   providers: ProviderRead[];
   disabled?: boolean;
+  compact?: boolean;
 }>(), {
   disabled: false,
+  compact: false,
 });
 
 const providers = computed(() => props.providers.filter((provider) => provider.is_configured && provider.linking.linked));
@@ -26,7 +28,7 @@ watch(providers, (newProviders) => {
   immediate: true
 });
 
-const emit = defineEmits(['update:modelValue', 'blur']);
+defineEmits(['update:modelValue', 'blur']);
 </script>
 
 <template>
@@ -40,7 +42,7 @@ const emit = defineEmits(['update:modelValue', 'blur']);
       <ComboboxTrigger class="disabled:opacity-50" v-if="providers.length > 0">
         <div class="flex gap-2 items-center min-w-0">
           <img :src="providerChoice.ui.favicon" alt="" v-if="providerChoice?.ui.favicon" class="h-5 object-cover" />
-          <span class="whitespace-nowrap text-zinc-300">{{ providerChoice?.ui.display_name ?? 'Please choose' }}</span>
+          <span class="whitespace-nowrap text-zinc-300" v-if="!compact">{{ providerChoice?.ui.display_name ?? 'Please choose' }}</span>
           <Icon icon="radix-icons:chevron-down" class="h-4 w-4 text-zinc-400 shrink-0" />
         </div>
       </ComboboxTrigger>

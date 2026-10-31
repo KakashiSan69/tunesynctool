@@ -18,7 +18,7 @@
 import type { TaskKind } from './task-kind';
 
 /**
- * Playlist transfer parameters.
+ * Playlist task parameters.
  * @export
  * @interface PlaylistTaskCreate
  */
@@ -53,6 +53,12 @@ export interface PlaylistTaskCreate {
      * @memberof PlaylistTaskCreate
      */
     'from_playlist': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PlaylistTaskCreate
+     */
+    'to_playlist'?: string | null;
 }
 
 
